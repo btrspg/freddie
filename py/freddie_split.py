@@ -3,6 +3,7 @@ import argparse
 import os
 import resource
 import re
+import gzip
 from operator import itemgetter
 from collections import deque
 from multiprocessing import Pool
@@ -74,7 +75,11 @@ def parse_args():
                         nargs="+",
                         type=str,
                         required=True,
-                        help="Space separated paths to reads in FASTQ or FASTA format used to extract polyA tail information")
+                        help="Space separated paths to reads in FASTQ/A format used to extract polyA tail information.")
+    parser.add_argument("-gz",
+                        nargs="?",
+                        action='store_true',
+                        help="A flag indicating that the input is GZ compressed.")
     parser.add_argument("-t",
                         "--threads",
                         default=1,
@@ -88,21 +93,6 @@ def parse_args():
     args = parser.parse_args()
     assert args.threads > 0
     return args
-
-
-# def fix_cigar(cigar):
-#     fixed_cigar = list()
-#     fixed_cigar.append(cigar[0])
-#     for t, c in cigar[1:]:
-#         last_t, last_c = fixed_cigar[-1]
-#         if t == last_t:
-#             fixed_cigar[-1] = (t, last_c+c)
-#             continue
-#         if t in target_skipping and last_t in target_skipping:
-#             fixed_cigar[-1] = (pysam.CREF_SKIP, c+last_c)
-#             continue
-#         fixed_cigar.append((t, c))
-#     return fixed_cigar
 
 
 def fix_intervals(intervals):
@@ -282,12 +272,12 @@ def get_transcriptional_intervals(reads):
     return multi_tints
 
 
-def split_reads(read_files, rname_to_tint, contigs, outdir):
+def split_reads(read_files, gzipped, rname_to_tint, contigs, outdir):
     print('[freddie_split] Splitting reads...')
     outfiles = {c: open('{}/{}/reads.tsv'.format(outdir, c), 'w+')
                 for c in contigs}
     for read_file in read_files:
-        for idx, line in enumerate(open(read_file)):
+        for idx, line in enumerate(gzip.open(read_file, 'rt') if gzipped else open(read_file)):
             if idx == 0:
                 if line[0] == '@':
                     mod = 4
@@ -423,7 +413,7 @@ def main():
         assert False, 'Number of contigs in reference is much larger than system hard limit on open files! {} vs {}'.format(len(contigs), RLIMIT_NOFILE_hard)
     if RLIMIT_NOFILE_soft < len(contigs)+10:
         resource.setrlimit(resource.RLIMIT_NOFILE, (len(contigs)+10, RLIMIT_NOFILE_hard))
-    split_reads(read_files=args.reads,
+    split_reads(read_files=args.reads, gzipped=args.gz,
                 rname_to_tint=rname_to_tint, contigs=final_contigs, outdir=args.outdir)
 
 if __name__ == "__main__":
