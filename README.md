@@ -56,6 +56,7 @@ Align takes the following arguments:
 - `--reads/-r`: Space separated paths to reads in FASTQ or FASTA
 - `--bam/-b`: `BAM` file of read alignments from a split/splice long-read mapper that are position sorted and indexed.
 - `--outdir/-o`: Output TSV file of split stage. Default: `freddie_split/`
+- `-gz`: Indicate whether the input reads are GZ compressed. Default: Assumes uncompressed text.
 
 ### Segment
 
