@@ -708,8 +708,8 @@ def segment(tint, sigma, smoothed_threshold, threshold_rate, variance_factor, ma
         # fixed_c_idxs, new_problems_total_count = break_large_problems(
         #     candidate_y_idxs, fixed_c_idxs, y, max_problem_size)
         fixed_c_idxs = sorted(fixed_c_idxs)
-        for s, e in zip(fixed_c_idxs[:-1], fixed_c_idxs[1:]):
-            assert e-s+1 <= max_problem_size+5
+#         for s, e in zip(fixed_c_idxs[:-1], fixed_c_idxs[1:]):
+#             assert e-s+1 <= max_problem_size+5
 
         cumulative_coverage = get_cumulative_coverage(
             candidate_y_idxs, Yy_idx_to_r_idxs[Y_idx])
